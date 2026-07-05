@@ -1,0 +1,93 @@
+{
+  "seo": {
+    "title": "Generador de facturas gratis — sin registro, sin marca de agua · Snuuy Invoice",
+    "description": "Crea facturas profesionales en tu navegador: IVA, logotipo, numeración secuencial, descarga en PDF. Ilimitado y gratis para siempre — tus datos nunca salen de tu dispositivo.",
+    "ogTitle": "Snuuy Invoice — generador de facturas gratis, sin registro",
+    "ogDescription": "Facturas profesionales ilimitadas con soporte de IVA, generadas en tu dispositivo. Sin cuenta, sin marca de agua, sin muros de pago."
+  },
+  "header": {
+    "backup": "Copia de seguridad",
+    "restoreBackup": "Restaurar copia",
+    "language": "Idioma"
+  },
+  "sections": {
+    "business": "Tu negocio",
+    "billTo": "Facturar a",
+    "details": "Detalles de la factura",
+    "items": "Conceptos",
+    "taxDiscount": "Impuestos y descuento",
+    "notes": "Condiciones de pago y notas"
+  },
+  "business": {
+    "name": "Empresa o tu nombre",
+    "email": "Correo electrónico",
+    "address": "Dirección",
+    "phone": "Teléfono (opcional)",
+    "taxLabel": "Etiqueta fiscal (ej. NIF, CIF)",
+    "taxId": "Identificación fiscal (opcional)",
+    "addLogo": "Añadir logotipo",
+    "replace": "Reemplazar",
+    "remove": "Quitar"
+  },
+  "client": {
+    "savedClients": "Clientes guardados",
+    "saveClient": "Guardar cliente",
+    "name": "Nombre del cliente",
+    "email": "Correo del cliente (opcional)",
+    "address": "Dirección del cliente",
+    "taxId": "NIF-IVA del cliente (opcional — necesario para B2B en la UE)",
+    "saved": "Cliente guardado en este dispositivo"
+  },
+  "details": {
+    "prefix": "Prefijo",
+    "issueDate": "Fecha de emisión",
+    "dueDate": "Fecha de vencimiento",
+    "dueIn": "Vence en",
+    "days": "{n} días",
+    "currency": "Moneda",
+    "docLanguage": "Idioma de la factura",
+    "taxInvoiceLabel": "Etiquetar como «TAX INVOICE» (obligatorio en Australia)"
+  },
+  "items": {
+    "placeholder": "Concepto {n} — ¿qué hiciste?",
+    "removeItem": "Eliminar concepto {n}",
+    "qty": "Cant.",
+    "rate": "Precio",
+    "taxPct": "Imp. %",
+    "addItem": "Añadir concepto",
+    "subtotal": "Subtotal"
+  },
+  "tax": {
+    "charge": "Aplicar {label}",
+    "inclusive": "Los precios ya incluyen {label}",
+    "applyAll": "Aplicar a todos los conceptos",
+    "noDiscount": "Sin descuento",
+    "percentOff": "Porcentaje",
+    "fixedAmount": "Importe fijo"
+  },
+  "notes": {
+    "paymentTerms": "Condiciones de pago — datos bancarios, recargos… (opcional)",
+    "notes": "Notas — agradecimiento, referencias… (opcional)"
+  },
+  "preview": {
+    "total": "Total",
+    "download": "Descargar {file}",
+    "previewDownload": "Vista previa y descarga",
+    "title": "Vista previa de la factura"
+  },
+  "toasts": {
+    "saved": "{file} guardado — el siguiente es n.º {next}",
+    "buildError": "Algo salió mal al crear el PDF",
+    "backupRestored": "Copia restaurada",
+    "backupInvalid": "Ese archivo no es una copia de Snuuy Invoice"
+  },
+  "footer": {
+    "tagline": "Gratis para siempre · tus datos nunca salen de tu dispositivo",
+    "tipJar": "Propinas"
+  },
+  "tip": {
+    "title": "¿Te gusta Snuuy Invoice?",
+    "description": "Es gratis para siempre — las propinas lo mantienen así.",
+    "action": "Dejar una propina"
+  }
+}

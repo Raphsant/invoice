@@ -1,6 +1,77 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
-import type { InvoiceState } from '~/composables/useInvoice'
-import { computeTotals, formatMoney, invoiceNumber } from '~/composables/useInvoice'
+import type { DocLang, InvoiceState } from '~/composables/useInvoice'
+import { computeTotals, formatDate, formatMoney, invoiceNumber } from '~/composables/useInvoice'
+
+// Document strings live here (not in the UI i18n files): the invoice's language
+// is chosen per document and is independent of the UI locale.
+const DOC_STRINGS: Record<DocLang, Record<string, string>> = {
+  en: {
+    invoice: 'INVOICE',
+    taxInvoice: 'TAX INVOICE',
+    billTo: 'BILL TO',
+    invoiceNo: 'Invoice no.',
+    issueDate: 'Issue date',
+    dueDate: 'Due date',
+    taxPoint: 'Tax point',
+    clientTaxId: 'Tax ID',
+    description: 'DESCRIPTION',
+    qty: 'QTY',
+    rate: 'RATE',
+    tax: 'TAX',
+    amount: 'AMOUNT',
+    subtotal: 'Subtotal',
+    discount: 'Discount',
+    included: '(included)',
+    total: 'Total',
+    totalIncl: 'Total (incl. {label})',
+    paymentTerms: 'PAYMENT TERMS',
+    notes: 'NOTES',
+  },
+  fr: {
+    invoice: 'FACTURE',
+    taxInvoice: 'FACTURE FISCALE',
+    billTo: 'FACTURÉ À',
+    invoiceNo: 'Facture n°',
+    issueDate: 'Date d\'émission',
+    dueDate: 'Date d\'échéance',
+    taxPoint: 'Date de prestation',
+    clientTaxId: 'N° fiscal',
+    description: 'DESCRIPTION',
+    qty: 'QTÉ',
+    rate: 'PRIX',
+    tax: 'TAXE',
+    amount: 'MONTANT',
+    subtotal: 'Sous-total',
+    discount: 'Remise',
+    included: '(incluse)',
+    total: 'Total',
+    totalIncl: 'Total ({label} incluse)',
+    paymentTerms: 'CONDITIONS DE PAIEMENT',
+    notes: 'NOTES',
+  },
+  es: {
+    invoice: 'FACTURA',
+    taxInvoice: 'FACTURA FISCAL',
+    billTo: 'FACTURAR A',
+    invoiceNo: 'Factura n.º',
+    issueDate: 'Fecha de emisión',
+    dueDate: 'Fecha de vencimiento',
+    taxPoint: 'Fecha de operación',
+    clientTaxId: 'NIF',
+    description: 'DESCRIPCIÓN',
+    qty: 'CANT.',
+    rate: 'PRECIO',
+    tax: 'IMP.',
+    amount: 'IMPORTE',
+    subtotal: 'Subtotal',
+    discount: 'Descuento',
+    included: '(incluido)',
+    total: 'Total',
+    totalIncl: 'Total ({label} incluido)',
+    paymentTerms: 'CONDICIONES DE PAGO',
+    notes: 'NOTAS',
+  },
+}
 
 const A4 = { width: 595.28, height: 841.89 }
 const MARGIN = 48
@@ -42,7 +113,9 @@ function wrapText(font: PDFFont, text: string, size: number, maxWidth: number): 
 
 export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
   const totals = computeTotals(state)
-  const money = (n: number) => sanitize(formatMoney(n, state.meta.currency))
+  const L = DOC_STRINGS[state.docLang] ?? DOC_STRINGS.en
+  const money = (n: number) => sanitize(formatMoney(n, state.meta.currency, state.docLang))
+  const date = (iso: string) => sanitize(formatDate(iso, state.docLang))
   const minimal = state.template === 'minimal'
 
   const doc = await PDFDocument.create()
@@ -93,7 +166,7 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
     leftY -= 12
   }
 
-  const title = state.meta.taxInvoiceLabel ? 'TAX INVOICE' : 'INVOICE'
+  const title = state.meta.taxInvoiceLabel ? L.taxInvoice! : L.invoice!
   text(title, 0, headerTop - 18, { font: bold, size: 21, color: minimal ? INK : ACCENT, right: A4.width - MARGIN })
   let rightY = headerTop - 40
   const metaRow = (label: string, value: string) => {
@@ -101,15 +174,15 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
     text(value, 0, rightY, { size: 8.5, font: bold, right: A4.width - MARGIN })
     rightY -= 13
   }
-  metaRow('Invoice no.', invoiceNumber(state))
-  metaRow('Issue date', state.meta.issueDate)
-  if (state.meta.dueDate) metaRow('Due date', state.meta.dueDate)
-  if (state.meta.taxPointDate) metaRow('Tax point', state.meta.taxPointDate)
+  metaRow(L.invoiceNo!, invoiceNumber(state))
+  metaRow(L.issueDate!, date(state.meta.issueDate))
+  if (state.meta.dueDate) metaRow(L.dueDate!, date(state.meta.dueDate))
+  if (state.meta.taxPointDate) metaRow(L.taxPoint!, date(state.meta.taxPointDate))
 
   y = Math.min(leftY, rightY) - 24
 
   // ----- bill to
-  text('BILL TO', MARGIN, y, { size: 7.5, font: bold, color: MUTED })
+  text(L.billTo!, MARGIN, y, { size: 7.5, font: bold, color: MUTED })
   y -= 14
   if (state.client.name) {
     text(state.client.name, MARGIN, y, { font: bold, size: 10 })
@@ -118,7 +191,7 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
   const clientLines = [
     ...wrapText(font, state.client.address, 8.5, 260),
     state.client.email,
-    state.client.taxId ? `Tax ID ${state.client.taxId}` : '',
+    state.client.taxId ? `${L.clientTaxId} ${state.client.taxId}` : '',
   ].filter(Boolean)
   for (const line of clientLines) {
     text(line, MARGIN, y, { size: 8.5, color: MUTED })
@@ -143,11 +216,11 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
     }
     const hc = minimal ? MUTED : rgb(1, 1, 1)
     const hy = y
-    text('DESCRIPTION', col.desc, hy, { size: 7.5, font: bold, color: hc })
-    text('QTY', 0, hy, { size: 7.5, font: bold, color: hc, right: col.qty })
-    text('RATE', 0, hy, { size: 7.5, font: bold, color: hc, right: col.rate })
-    if (showTax) text('TAX', 0, hy, { size: 7.5, font: bold, color: hc, right: col.tax })
-    text('AMOUNT', 0, hy, { size: 7.5, font: bold, color: hc, right: col.amount })
+    text(L.description!, col.desc, hy, { size: 7.5, font: bold, color: hc })
+    text(L.qty!, 0, hy, { size: 7.5, font: bold, color: hc, right: col.qty })
+    text(L.rate!, 0, hy, { size: 7.5, font: bold, color: hc, right: col.rate })
+    if (showTax) text(L.tax!, 0, hy, { size: 7.5, font: bold, color: hc, right: col.tax })
+    text(L.amount!, 0, hy, { size: 7.5, font: bold, color: hc, right: col.amount })
     y -= minimal ? 14 : 24
     if (minimal) {
       rule(y + 6, INK, 1)
@@ -184,19 +257,23 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
     text(value, 0, y, { size: opts.bold ? 10.5 : 9, font: opts.bold ? bold : font, color: opts.accent ? ACCENT : INK, right: col.amount })
     y -= opts.bold ? 20 : 15
   }
-  totalRow('Subtotal', money(totals.subtotal))
+  totalRow(L.subtotal!, money(totals.subtotal))
   if (totals.discount > 0) {
     totalRow(
-      state.discount.type === 'percent' ? `Discount (${state.discount.value}%)` : 'Discount',
+      state.discount.type === 'percent' ? `${L.discount} (${state.discount.value}%)` : L.discount!,
       `-${money(totals.discount)}`,
     )
   }
   for (const row of totals.taxRows) {
-    totalRow(`${state.tax.label} ${row.rate}%${state.tax.inclusive ? ' (included)' : ''}`, money(row.amount))
+    totalRow(`${state.tax.label} ${row.rate}%${state.tax.inclusive ? ` ${L.included}` : ''}`, money(row.amount))
   }
   page.drawLine({ start: { x: col.amount - 190, y: y + 8 }, end: { x: col.amount, y: y + 8 }, color: minimal ? INK : ACCENT, thickness: 1.25 })
   y -= 6
-  totalRow(state.tax.inclusive && totals.taxTotal > 0 ? `Total (incl. ${state.tax.label})` : 'Total', money(totals.total), { bold: true, accent: !minimal })
+  totalRow(
+    state.tax.inclusive && totals.taxTotal > 0 ? L.totalIncl!.replace('{label}', state.tax.label) : L.total!,
+    money(totals.total),
+    { bold: true, accent: !minimal },
+  )
 
   // ----- notes / terms
   const footerBlock = (label: string, body: string) => {
@@ -210,8 +287,8 @@ export async function buildInvoicePdf(state: InvoiceState): Promise<Blob> {
       y -= 12
     }
   }
-  footerBlock('PAYMENT TERMS', state.paymentTerms)
-  footerBlock('NOTES', state.notes)
+  footerBlock(L.paymentTerms!, state.paymentTerms)
+  footerBlock(L.notes!, state.notes)
 
   return new Blob([await doc.save()], { type: 'application/pdf' })
 }

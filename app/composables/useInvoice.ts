@@ -47,7 +47,10 @@ export interface InvoiceState {
   notes: string
   paymentTerms: string
   template: 'classic' | 'minimal'
+  docLang: DocLang
 }
+
+export type DocLang = 'en' | 'fr' | 'es'
 
 export interface SavedClient {
   name: string
@@ -84,6 +87,7 @@ export const defaultInvoice = (): InvoiceState => ({
   notes: '',
   paymentTerms: '',
   template: 'classic',
+  docLang: 'en',
 })
 
 export interface TaxBreakdownRow {
@@ -134,12 +138,22 @@ export function computeTotals(state: InvoiceState): InvoiceTotals {
   return { subtotal, discount, taxRows, taxTotal, total }
 }
 
-export function formatMoney(amount: number, currency: string): string {
+export function formatMoney(amount: number, currency: string, locale = 'en'): string {
   try {
-    return new Intl.NumberFormat('en', { style: 'currency', currency }).format(amount)
+    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount)
   }
   catch {
     return `${currency} ${amount.toFixed(2)}`
+  }
+}
+
+export function formatDate(iso: string, locale = 'en'): string {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(`${iso}T00:00:00`))
+  }
+  catch {
+    return iso
   }
 }
 

@@ -1,0 +1,93 @@
+{
+  "seo": {
+    "title": "Générateur de factures gratuit — sans inscription, sans filigrane · Snuuy Invoice",
+    "description": "Créez des factures professionnelles dans votre navigateur : TVA, logo, numérotation séquentielle, export PDF. Illimité et gratuit pour toujours — vos données ne quittent jamais votre appareil.",
+    "ogTitle": "Snuuy Invoice — générateur de factures gratuit, sans inscription",
+    "ogDescription": "Factures professionnelles illimitées avec gestion de la TVA, générées sur votre appareil. Sans compte, sans filigrane, sans paywall."
+  },
+  "header": {
+    "backup": "Sauvegarde",
+    "restoreBackup": "Restaurer une sauvegarde",
+    "language": "Langue"
+  },
+  "sections": {
+    "business": "Votre entreprise",
+    "billTo": "Facturé à",
+    "details": "Détails de la facture",
+    "items": "Prestations",
+    "taxDiscount": "Taxes et remise",
+    "notes": "Conditions de paiement et notes"
+  },
+  "business": {
+    "name": "Entreprise ou votre nom",
+    "email": "E-mail",
+    "address": "Adresse",
+    "phone": "Téléphone (facultatif)",
+    "taxLabel": "Libellé fiscal (ex. N° TVA, SIRET)",
+    "taxId": "Identifiant fiscal (facultatif)",
+    "addLogo": "Ajouter un logo",
+    "replace": "Remplacer",
+    "remove": "Supprimer"
+  },
+  "client": {
+    "savedClients": "Clients enregistrés",
+    "saveClient": "Enregistrer le client",
+    "name": "Nom du client",
+    "email": "E-mail du client (facultatif)",
+    "address": "Adresse du client",
+    "taxId": "N° TVA du client (facultatif — requis en B2B intra-UE)",
+    "saved": "Client enregistré sur cet appareil"
+  },
+  "details": {
+    "prefix": "Préfixe",
+    "issueDate": "Date d'émission",
+    "dueDate": "Date d'échéance",
+    "dueIn": "Échéance",
+    "days": "{n} jours",
+    "currency": "Devise",
+    "docLanguage": "Langue de la facture",
+    "taxInvoiceLabel": "Libeller « TAX INVOICE » (requis en Australie)"
+  },
+  "items": {
+    "placeholder": "Prestation {n} — qu'avez-vous fait ?",
+    "removeItem": "Supprimer la prestation {n}",
+    "qty": "Qté",
+    "rate": "Prix",
+    "taxPct": "Taxe %",
+    "addItem": "Ajouter une ligne",
+    "subtotal": "Sous-total"
+  },
+  "tax": {
+    "charge": "Appliquer la {label}",
+    "inclusive": "Les prix incluent déjà la {label}",
+    "applyAll": "Appliquer à toutes les lignes",
+    "noDiscount": "Pas de remise",
+    "percentOff": "Pourcentage",
+    "fixedAmount": "Montant fixe"
+  },
+  "notes": {
+    "paymentTerms": "Conditions de paiement — coordonnées bancaires, pénalités… (facultatif)",
+    "notes": "Notes — remerciements, références… (facultatif)"
+  },
+  "preview": {
+    "total": "Total",
+    "download": "Télécharger {file}",
+    "previewDownload": "Aperçu et téléchargement",
+    "title": "Aperçu de la facture"
+  },
+  "toasts": {
+    "saved": "{file} enregistré — prochain n° {next}",
+    "buildError": "Une erreur est survenue lors de la création du PDF",
+    "backupRestored": "Sauvegarde restaurée",
+    "backupInvalid": "Ce fichier n'est pas une sauvegarde Snuuy Invoice"
+  },
+  "footer": {
+    "tagline": "Gratuit pour toujours · vos données ne quittent jamais votre appareil",
+    "tipJar": "Pourboire"
+  },
+  "tip": {
+    "title": "Snuuy Invoice vous plaît ?",
+    "description": "C'est gratuit pour toujours — les pourboires y contribuent.",
+    "action": "Laisser un pourboire"
+  }
+}

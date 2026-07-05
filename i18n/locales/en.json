@@ -1,0 +1,93 @@
+{
+  "seo": {
+    "title": "Free invoice generator — no sign-up, no watermark · Snuuy Invoice",
+    "description": "Create professional invoices in your browser: VAT/GST support, logo, sequential numbering, PDF download. Unlimited and free forever — your data never leaves your device.",
+    "ogTitle": "Snuuy Invoice — free invoice generator, no sign-up",
+    "ogDescription": "Unlimited professional invoices with VAT/GST support, generated on your device. No account, no watermark, no paywall."
+  },
+  "header": {
+    "backup": "Backup",
+    "restoreBackup": "Restore backup",
+    "language": "Language"
+  },
+  "sections": {
+    "business": "Your business",
+    "billTo": "Bill to",
+    "details": "Invoice details",
+    "items": "Items",
+    "taxDiscount": "Tax & discount",
+    "notes": "Payment terms & notes"
+  },
+  "business": {
+    "name": "Business or your name",
+    "email": "Email",
+    "address": "Address",
+    "phone": "Phone (optional)",
+    "taxLabel": "Tax ID label (e.g. VAT No, ABN)",
+    "taxId": "Tax ID (optional)",
+    "addLogo": "Add logo",
+    "replace": "Replace",
+    "remove": "Remove"
+  },
+  "client": {
+    "savedClients": "Saved clients",
+    "saveClient": "Save client",
+    "name": "Client name",
+    "email": "Client email (optional)",
+    "address": "Client address",
+    "taxId": "Client VAT/tax ID (optional — needed for EU B2B)",
+    "saved": "Client saved on this device"
+  },
+  "details": {
+    "prefix": "Prefix",
+    "issueDate": "Issue date",
+    "dueDate": "Due date",
+    "dueIn": "Due in",
+    "days": "{n} days",
+    "currency": "Currency",
+    "docLanguage": "Invoice language",
+    "taxInvoiceLabel": "Label as “TAX INVOICE” (required in Australia)"
+  },
+  "items": {
+    "placeholder": "Item {n} — what did you do?",
+    "removeItem": "Remove item {n}",
+    "qty": "Qty",
+    "rate": "Rate",
+    "taxPct": "Tax %",
+    "addItem": "Add item",
+    "subtotal": "Subtotal"
+  },
+  "tax": {
+    "charge": "Charge {label}",
+    "inclusive": "Prices already include {label}",
+    "applyAll": "Apply to all items",
+    "noDiscount": "No discount",
+    "percentOff": "Percent off",
+    "fixedAmount": "Fixed amount"
+  },
+  "notes": {
+    "paymentTerms": "Payment terms — bank details, late fees… (optional)",
+    "notes": "Notes — thank you message, references… (optional)"
+  },
+  "preview": {
+    "total": "Total",
+    "download": "Download {file}",
+    "previewDownload": "Preview & download",
+    "title": "Invoice preview"
+  },
+  "toasts": {
+    "saved": "{file} saved — next is #{next}",
+    "buildError": "Something went wrong building the PDF",
+    "backupRestored": "Backup restored",
+    "backupInvalid": "That file isn't a Snuuy Invoice backup"
+  },
+  "footer": {
+    "tagline": "Free forever · your data never leaves your device",
+    "tipJar": "Tip jar"
+  },
+  "tip": {
+    "title": "Enjoying Snuuy Invoice?",
+    "description": "It’s free forever — tips keep it that way.",
+    "action": "Leave a tip"
+  }
+}

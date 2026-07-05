@@ -1,8 +1,12 @@
+<script setup lang="ts">
+const { t } = useI18n()
+</script>
+
 <template>
   <footer class="border-t border-default">
     <div class="mx-auto flex h-12 max-w-6xl items-center justify-between gap-4 px-4 text-xs text-muted sm:px-6">
       <p class="truncate">
-        Free forever · your data never leaves your device ·
+        {{ t('footer.tagline') }} ·
         <a href="https://qr.snuuy.com" target="_blank" rel="noopener" class="transition-colors hover:text-highlighted">QRMaker</a>
         ·
         <a href="https://pdf.snuuy.com" target="_blank" rel="noopener" class="transition-colors hover:text-highlighted">PDFTools</a>
@@ -14,7 +18,7 @@
         class="flex shrink-0 items-center gap-1.5 transition-colors hover:text-highlighted"
       >
         <UIcon name="i-lucide-coffee" class="size-3.5" />
-        Tip jar
+        {{ t('footer.tipJar') }}
       </a>
     </div>
   </footer>

@@ -1,20 +1,33 @@
 <script setup lang="ts">
+import type { DocLang } from '~/composables/useInvoice'
+
+const { t, locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
+const route = useRoute()
 const siteUrl = useRuntimeConfig().public.siteUrl
 
 useSeoMeta({
-  title: 'Free invoice generator — no sign-up, no watermark | Snuuy Invoice',
-  description: 'Create professional invoices in your browser: VAT/GST support, logo, sequential numbering, PDF download. Unlimited and free forever — your data never leaves your device.',
-  ogTitle: 'Snuuy Invoice — free invoice generator, no sign-up',
-  ogDescription: 'Unlimited professional invoices with VAT/GST support, generated on your device. No account, no watermark, no paywall.',
+  title: () => t('seo.title'),
+  description: () => t('seo.description'),
+  ogTitle: () => t('seo.ogTitle'),
+  ogDescription: () => t('seo.ogDescription'),
   ogType: 'website',
-  ogUrl: `${siteUrl}/`,
+  ogUrl: () => `${siteUrl}${route.path}`,
   ogImage: `${siteUrl}/og.png`,
   twitterCard: 'summary_large_image',
-  twitterTitle: 'Snuuy Invoice — free invoice generator, no sign-up',
+  twitterTitle: () => t('seo.ogTitle'),
   twitterImage: `${siteUrl}/og.png`,
 })
 
-useHead({ link: [{ rel: 'canonical', href: `${siteUrl}/` }] })
+useHead({
+  link: [
+    { rel: 'canonical', href: () => `${siteUrl}${route.path}` },
+    { rel: 'alternate', hreflang: 'en', href: `${siteUrl}/` },
+    { rel: 'alternate', hreflang: 'fr', href: `${siteUrl}/fr` },
+    { rel: 'alternate', hreflang: 'es', href: `${siteUrl}/es` },
+    { rel: 'alternate', hreflang: 'x-default', href: `${siteUrl}/` },
+  ],
+})
 
 const toast = useToast()
 const { recordExport } = useTipJar()
@@ -26,12 +39,32 @@ const logoInput = ref<HTMLInputElement>()
 const backupInput = ref<HTMLInputElement>()
 
 onMounted(async () => {
+  const fresh = !(await import('idb-keyval').then(m => m.get('invoice-state')))
   await restore()
+  // fresh visitors get invoice documents in their UI language
+  if (fresh && ['en', 'fr', 'es'].includes(locale.value)) state.value.docLang = locale.value as DocLang
   watch([state, clients], () => persist(), { deep: true })
 })
 
+const languageItems = computed(() =>
+  locales.value.map(l => ({
+    label: l.name!,
+    onSelect: () => navigateTo(switchLocalePath(l.code)),
+  })))
+
 const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'SEK', 'NOK', 'DKK', 'JPY', 'INR']
-const taxLabels = ['VAT', 'GST', 'Sales tax', 'HST', 'Tax']
+const taxLabels = ['VAT', 'TVA', 'IVA', 'GST', 'Sales tax', 'HST', 'Tax']
+const docLangs: { value: DocLang, label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'es', label: 'Español' },
+]
+
+const discountItems = computed(() => [
+  { label: t('tax.noDiscount'), value: 'none' },
+  { label: t('tax.percentOff'), value: 'percent' },
+  { label: t('tax.fixedAmount'), value: 'fixed' },
+])
 
 function setTerms(days: number) {
   const d = new Date(state.value.meta.issueDate || new Date().toISOString().slice(0, 10))
@@ -55,8 +88,8 @@ async function onBackupPicked(event: Event) {
   if (!file) return
   const ok = await importBackup(file)
   toast.add(ok
-    ? { title: 'Backup restored', icon: 'i-lucide-circle-check', color: 'success', duration: 2500 }
-    : { title: 'That file isn\'t a Snuuy Invoice backup', icon: 'i-lucide-triangle-alert', color: 'error' })
+    ? { title: t('toasts.backupRestored'), icon: 'i-lucide-circle-check', color: 'success', duration: 2500 }
+    : { title: t('toasts.backupInvalid'), icon: 'i-lucide-triangle-alert', color: 'error' })
   ;(event.target as HTMLInputElement).value = ''
 }
 
@@ -72,11 +105,16 @@ async function download() {
     saveBlob(await buildInvoicePdf(state.value), `${number}.pdf`)
     state.value.meta.number++
     persist()
-    toast.add({ title: `${number}.pdf saved — next is #${String(state.value.meta.number).padStart(4, '0')}`, icon: 'i-lucide-circle-check', color: 'success', duration: 3000 })
+    toast.add({
+      title: t('toasts.saved', { file: `${number}.pdf`, next: String(state.value.meta.number).padStart(4, '0') }),
+      icon: 'i-lucide-circle-check',
+      color: 'success',
+      duration: 3000,
+    })
     recordExport()
   }
   catch {
-    toast.add({ title: 'Something went wrong building the PDF', icon: 'i-lucide-triangle-alert', color: 'error' })
+    toast.add({ title: t('toasts.buildError'), icon: 'i-lucide-triangle-alert', color: 'error' })
   }
   finally {
     downloading.value = false
@@ -88,9 +126,18 @@ async function download() {
   <div class="flex min-h-dvh flex-col bg-default">
     <AppHeader>
       <template #actions>
+        <UDropdownMenu :items="languageItems">
+          <UButton
+            icon="i-lucide-globe"
+            :label="locale.toUpperCase()"
+            color="neutral"
+            variant="ghost"
+            :aria-label="t('header.language')"
+          />
+        </UDropdownMenu>
         <UButton
           icon="i-lucide-download"
-          label="Backup"
+          :label="t('header.backup')"
           color="neutral"
           variant="ghost"
           @click="exportBackup"
@@ -99,7 +146,7 @@ async function download() {
           icon="i-lucide-upload"
           color="neutral"
           variant="ghost"
-          aria-label="Restore backup"
+          :aria-label="t('header.restoreBackup')"
           @click="backupInput?.click()"
         />
         <input ref="backupInput" type="file" accept="application/json,.json" class="hidden" @change="onBackupPicked">
@@ -111,99 +158,105 @@ async function download() {
         <div class="flex flex-col gap-8">
           <section class="flex flex-col gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-              Your business
+              {{ t('sections.business') }}
             </h2>
             <div class="grid gap-2 sm:grid-cols-2">
-              <UInput v-model="state.business.name" placeholder="Business or your name" autocomplete="organization" />
-              <UInput v-model="state.business.email" placeholder="Email" type="email" autocomplete="email" />
+              <UInput v-model="state.business.name" :placeholder="t('business.name')" autocomplete="organization" />
+              <UInput v-model="state.business.email" :placeholder="t('business.email')" type="email" autocomplete="email" />
             </div>
-            <UTextarea v-model="state.business.address" :rows="2" autoresize placeholder="Address" />
+            <UTextarea v-model="state.business.address" :rows="2" autoresize :placeholder="t('business.address')" />
             <div class="grid gap-2 sm:grid-cols-3">
-              <UInput v-model="state.business.phone" placeholder="Phone (optional)" type="tel" />
-              <UInput v-model="state.business.taxLabel" placeholder="Tax ID label (e.g. VAT No, ABN)" />
-              <UInput v-model="state.business.taxId" placeholder="Tax ID (optional)" />
+              <UInput v-model="state.business.phone" :placeholder="t('business.phone')" type="tel" />
+              <UInput v-model="state.business.taxLabel" :placeholder="t('business.taxLabel')" />
+              <UInput v-model="state.business.taxId" :placeholder="t('business.taxId')" />
             </div>
             <div class="flex items-center gap-3">
               <input ref="logoInput" type="file" accept="image/png,image/jpeg" class="hidden" @change="onLogoPicked">
               <template v-if="state.business.logo">
                 <img :src="state.business.logo" alt="Logo" class="h-9 rounded border border-default bg-white object-contain px-1">
-                <UButton label="Replace" color="neutral" variant="subtle" size="sm" @click="logoInput?.click()" />
-                <UButton label="Remove" color="neutral" variant="ghost" size="sm" @click="state.business.logo = null" />
+                <UButton :label="t('business.replace')" color="neutral" variant="subtle" size="sm" @click="logoInput?.click()" />
+                <UButton :label="t('business.remove')" color="neutral" variant="ghost" size="sm" @click="state.business.logo = null" />
               </template>
-              <UButton v-else label="Add logo" icon="i-lucide-image-plus" color="neutral" variant="subtle" size="sm" @click="logoInput?.click()" />
+              <UButton v-else :label="t('business.addLogo')" icon="i-lucide-image-plus" color="neutral" variant="subtle" size="sm" @click="logoInput?.click()" />
             </div>
           </section>
 
           <section class="flex flex-col gap-3">
             <div class="flex items-center justify-between">
               <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-                Bill to
+                {{ t('sections.billTo') }}
               </h2>
               <div class="flex items-center gap-1">
                 <USelectMenu
                   v-if="clients.length"
                   :items="clients.map(c => c.name)"
-                  placeholder="Saved clients"
+                  :placeholder="t('client.savedClients')"
                   size="xs"
                   class="w-40"
                   @update:model-value="(name: string) => { const c = clients.find(x => x.name === name); if (c) loadClient(c) }"
                 />
                 <UButton
-                  label="Save client"
+                  :label="t('client.saveClient')"
                   icon="i-lucide-bookmark"
                   color="neutral"
                   variant="ghost"
                   size="xs"
                   :disabled="!state.client.name.trim()"
-                  @click="saveClient(); toast.add({ title: 'Client saved on this device', duration: 2000, icon: 'i-lucide-circle-check', color: 'success' })"
+                  @click="saveClient(); toast.add({ title: t('client.saved'), duration: 2000, icon: 'i-lucide-circle-check', color: 'success' })"
                 />
               </div>
             </div>
             <div class="grid gap-2 sm:grid-cols-2">
-              <UInput v-model="state.client.name" placeholder="Client name" />
-              <UInput v-model="state.client.email" placeholder="Client email (optional)" type="email" />
+              <UInput v-model="state.client.name" :placeholder="t('client.name')" />
+              <UInput v-model="state.client.email" :placeholder="t('client.email')" type="email" />
             </div>
-            <UTextarea v-model="state.client.address" :rows="2" autoresize placeholder="Client address" />
-            <UInput v-model="state.client.taxId" placeholder="Client VAT/tax ID (optional — needed for EU B2B)" />
+            <UTextarea v-model="state.client.address" :rows="2" autoresize :placeholder="t('client.address')" />
+            <UInput v-model="state.client.taxId" :placeholder="t('client.taxId')" />
           </section>
 
           <section class="flex flex-col gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-              Invoice details
+              {{ t('sections.details') }}
             </h2>
             <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <UInput v-model="state.meta.prefix" placeholder="Prefix">
+              <UInput v-model="state.meta.prefix" :placeholder="t('details.prefix')">
                 <template #leading>
                   <span class="text-xs text-muted">№</span>
                 </template>
               </UInput>
               <UInput v-model.number="state.meta.number" type="number" min="1" />
-              <UInput v-model="state.meta.issueDate" type="date" aria-label="Issue date" />
-              <UInput v-model="state.meta.dueDate" type="date" aria-label="Due date" />
+              <UInput v-model="state.meta.issueDate" type="date" :aria-label="t('details.issueDate')" />
+              <UInput v-model="state.meta.dueDate" type="date" :aria-label="t('details.dueDate')" />
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs text-muted">Due in</span>
-              <UButton v-for="d in [7, 14, 30]" :key="d" :label="`${d} days`" color="neutral" variant="subtle" size="xs" @click="setTerms(d)" />
+              <span class="text-xs text-muted">{{ t('details.dueIn') }}</span>
+              <UButton v-for="d in [7, 14, 30]" :key="d" :label="t('details.days', { n: d })" color="neutral" variant="subtle" size="xs" @click="setTerms(d)" />
               <span class="ms-auto flex items-center gap-2">
-                <span class="text-xs text-muted">Currency</span>
+                <span class="text-xs text-muted">{{ t('details.currency') }}</span>
                 <USelectMenu v-model="state.meta.currency" :items="currencies" size="sm" class="w-24" />
               </span>
             </div>
-            <USwitch v-model="state.meta.taxInvoiceLabel" label="Label as “TAX INVOICE” (required in Australia)" size="sm" />
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <USwitch v-model="state.meta.taxInvoiceLabel" :label="t('details.taxInvoiceLabel')" size="sm" />
+              <span class="flex items-center gap-2">
+                <span class="text-xs text-muted">{{ t('details.docLanguage') }}</span>
+                <USelectMenu v-model="state.docLang" :items="docLangs" value-key="value" size="sm" class="w-32" />
+              </span>
+            </div>
           </section>
 
           <section class="flex flex-col gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-              Items
+              {{ t('sections.items') }}
             </h2>
             <InvoiceItems />
           </section>
 
           <section class="flex flex-col gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-              Tax & discount
+              {{ t('sections.taxDiscount') }}
             </h2>
-            <USwitch v-model="state.tax.enabled" :label="`Charge ${state.tax.label || 'tax'}`" size="sm" />
+            <USwitch v-model="state.tax.enabled" :label="t('tax.charge', { label: state.tax.label || 'tax' })" size="sm" />
             <template v-if="state.tax.enabled">
               <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 <USelectMenu v-model="state.tax.label" :items="taxLabels" create-item @create="(v: string) => state.tax.label = v" />
@@ -212,14 +265,14 @@ async function download() {
                     <span class="text-xs text-muted">%</span>
                   </template>
                 </UInput>
-                <UButton label="Apply to all items" color="neutral" variant="subtle" size="sm" @click="applyDefaultTaxRate" />
+                <UButton :label="t('tax.applyAll')" color="neutral" variant="subtle" size="sm" @click="applyDefaultTaxRate" />
               </div>
-              <USwitch v-model="state.tax.inclusive" :label="`Prices already include ${state.tax.label}`" size="sm" />
+              <USwitch v-model="state.tax.inclusive" :label="t('tax.inclusive', { label: state.tax.label })" size="sm" />
             </template>
             <div class="grid grid-cols-2 gap-2 sm:w-1/2">
               <USelectMenu
                 v-model="state.discount.type"
-                :items="[{ label: 'No discount', value: 'none' }, { label: 'Percent off', value: 'percent' }, { label: 'Fixed amount', value: 'fixed' }]"
+                :items="discountItems"
                 value-key="value"
               />
               <UInput v-if="state.discount.type !== 'none'" v-model.number="state.discount.value" type="number" min="0" step="any">
@@ -232,10 +285,10 @@ async function download() {
 
           <section class="flex flex-col gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">
-              Payment terms & notes
+              {{ t('sections.notes') }}
             </h2>
-            <UTextarea v-model="state.paymentTerms" :rows="2" autoresize placeholder="Payment terms — bank details, late fees… (optional)" />
-            <UTextarea v-model="state.notes" :rows="2" autoresize placeholder="Notes — thank you message, references… (optional)" />
+            <UTextarea v-model="state.paymentTerms" :rows="2" autoresize :placeholder="t('notes.paymentTerms')" />
+            <UTextarea v-model="state.notes" :rows="2" autoresize :placeholder="t('notes.notes')" />
           </section>
         </div>
 
@@ -244,25 +297,25 @@ async function download() {
             <div class="flex items-center justify-between">
               <div class="grid grid-cols-2 gap-1 rounded-lg border border-default p-1">
                 <button
-                  v-for="t in (['classic', 'minimal'] as const)"
-                  :key="t"
+                  v-for="tmpl in (['classic', 'minimal'] as const)"
+                  :key="tmpl"
                   type="button"
                   class="rounded-md px-3 py-1 text-xs font-medium capitalize transition-colors"
-                  :class="state.template === t ? 'bg-primary/10 text-primary' : 'text-muted hover:text-toned'"
-                  @click="state.template = t"
+                  :class="state.template === tmpl ? 'bg-primary/10 text-primary' : 'text-muted hover:text-toned'"
+                  @click="state.template = tmpl"
                 >
-                  {{ t }}
+                  {{ tmpl }}
                 </button>
               </div>
               <p class="text-sm text-muted">
-                Total <span class="font-semibold text-highlighted">{{ formatMoney(totals.total, state.meta.currency) }}</span>
+                {{ t('preview.total') }} <span class="font-semibold text-highlighted">{{ formatMoney(totals.total, state.meta.currency, locale) }}</span>
               </p>
             </div>
             <div class="max-h-[70vh] overflow-y-auto rounded-lg">
               <InvoicePreview />
             </div>
             <UButton
-              :label="`Download ${invoiceNumber(state)}.pdf`"
+              :label="t('preview.download', { file: `${invoiceNumber(state)}.pdf` })"
               icon="i-lucide-download"
               size="lg"
               block
@@ -277,18 +330,18 @@ async function download() {
     <div class="fixed inset-x-0 bottom-0 z-10 border-t border-default bg-default/95 backdrop-blur lg:hidden">
       <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <p class="text-sm text-muted">
-          Total <span class="font-semibold text-highlighted">{{ formatMoney(totals.total, state.meta.currency) }}</span>
+          {{ t('preview.total') }} <span class="font-semibold text-highlighted">{{ formatMoney(totals.total, state.meta.currency, locale) }}</span>
         </p>
-        <UButton label="Preview & download" icon="i-lucide-eye" @click="previewOpen = true" />
+        <UButton :label="t('preview.previewDownload')" icon="i-lucide-eye" @click="previewOpen = true" />
       </div>
     </div>
 
-    <USlideover v-model:open="previewOpen" title="Invoice preview" side="bottom">
+    <USlideover v-model:open="previewOpen" :title="t('preview.title')" side="bottom">
       <template #body>
         <div class="flex flex-col gap-3">
           <InvoicePreview />
           <UButton
-            :label="`Download ${invoiceNumber(state)}.pdf`"
+            :label="t('preview.download', { file: `${invoiceNumber(state)}.pdf` })"
             icon="i-lucide-download"
             size="lg"
             block
