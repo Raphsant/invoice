@@ -38,11 +38,18 @@ const previewOpen = ref(false)
 const logoInput = ref<HTMLInputElement>()
 const backupInput = ref<HTMLInputElement>()
 
+const DOC_LANGS: DocLang[] = ['en', 'fr', 'es']
+
+function syncDocLang(l: string) {
+  if (DOC_LANGS.includes(l as DocLang)) state.value.docLang = l as DocLang
+}
+
 onMounted(async () => {
-  const fresh = !(await import('idb-keyval').then(m => m.get('invoice-state')))
   await restore()
-  // fresh visitors get invoice documents in their UI language
-  if (fresh && ['en', 'fr', 'es'].includes(locale.value)) state.value.docLang = locale.value as DocLang
+  // the document follows the UI language; the per-invoice selector below
+  // stays available for one-off overrides (e.g. English UI, French client)
+  syncDocLang(locale.value)
+  watch(locale, syncDocLang)
   watch([state, clients], () => persist(), { deep: true })
 })
 
