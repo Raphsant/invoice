@@ -1,0 +1,4 @@
+User-Agent: *
+Disallow:
+
+Sitemap: https://invoice.snuuy.com/sitemap.xml

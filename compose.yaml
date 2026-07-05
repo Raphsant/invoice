@@ -1,0 +1,12 @@
+# Dockge stack for Snuuy Invoice
+# Replace YOUR_GITHUB_USERNAME/invoice with the actual GitHub repo path
+# (the image name matches the repo: ghcr.io/<owner>/<repo>).
+services:
+  invoice:
+    image: ghcr.io/YOUR_GITHUB_USERNAME/invoice:latest
+    container_name: invoice
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      - NUXT_PUBLIC_SITE_URL=https://invoice.snuuy.com
